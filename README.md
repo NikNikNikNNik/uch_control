@@ -70,6 +70,19 @@ docker compose up -d --build
 
 Приложение не обращается в интернет: библиотека Excel отдаётся с того же сервера. Подходит для закрытого контура.
 
+## Размещение на Hostinger VPS (Docker + SQLite)
+
+В репозитории есть отдельная конфигурация для VPS: приложение хранит SQLite в `data/training.db`, а Caddy автоматически получает HTTPS-сертификат для домена.
+
+1. На VPS установите Docker Engine и Docker Compose plugin, затем клонируйте репозиторий.
+2. Создайте `.env` из `.env.hostinger.example`. Укажите домен, задайте `ADMIN_PASSWORD` и создайте длинный случайный `JWT_SECRET` (например, `openssl rand -hex 32`). Не публикуйте `.env`.
+3. До первого запуска подготовьте постоянную папку данных: `mkdir -p data && sudo chown 1000:1000 data`.
+4. Если нужно сохранить существующие рабочие данные, сначала перенесите актуальный файл SQLite в `data/training.db`. Не используйте копию из GitHub: база намеренно исключена из репозитория. Для новой пустой базы файл создастся автоматически.
+5. Направьте A-запись `uchcontrol.sdiagnost.ru` на IPv4-адрес VPS, откройте входящие порты TCP 80 и 443 в брандмауэре и запустите `docker compose -f docker-compose.hostinger.yml up -d --build`.
+6. Проверьте `docker compose -f docker-compose.hostinger.yml ps` и `docker compose -f docker-compose.hostinger.yml logs -f app caddy`.
+
+`data/` подключена как постоянная папка хоста, поэтому пересборка контейнера не удаляет SQLite. Настройте регулярные резервные копии этой папки. Не переключайте домен с текущего сервера до проверки входа и данных на VPS.
+
 ### Резервное копирование
 
 * PostgreSQL: штатный `pg_dump` по расписанию.
