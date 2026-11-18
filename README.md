@@ -80,7 +80,7 @@ docker compose up -d --build
 4. Если нужно сохранить существующие рабочие данные, сначала перенесите актуальный файл SQLite в `data/training.db`. Не используйте копию из GitHub: база намеренно исключена из репозитория. Для новой пустой базы файл создастся автоматически.
 5. Запустите `docker compose -f docker-compose.hostinger.yml up -d --build` и убедитесь, что контейнер `app` имеет статус `healthy`.
 6. Направьте A-запись только поддомена `uchcontrol.sdiagnost.ru` на IPv4-адрес VPS. Не меняйте NS-записи домена без переноса всех существующих DNS-записей.
-7. Добавьте Nginx-конфигурацию из `nginx/uchcontrol.sdiagnost.ru.conf` в `sites-available`, включите её, проверьте `nginx -t` и выполните `systemctl reload nginx`. Затем установите HTTPS-сертификат через Certbot (`certbot --nginx -d uchcontrol.sdiagnost.ru`) или текущий инструмент управления сертификатами.
+7. Добавьте Nginx-конфигурацию из `nginx/uchcontrol.sdiagnost.ru.conf` в `sites-available`, включите её, проверьте `nginx -t` и выполните `systemctl reload nginx`. Затем установите HTTPS-сертификат через Certbot (`certbot --nginx -d uchcontrol.sdiagnost.ru -d www.uchcontrol.sdiagnost.ru`) или текущий инструмент управления сертификатами.
 
 `data/` подключена как постоянная папка хоста, поэтому пересборка контейнера не удаляет SQLite. Настройте регулярные резервные копии этой папки. Не переключайте домен с текущего сервера до проверки входа и данных на VPS.
 
