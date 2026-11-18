@@ -72,14 +72,15 @@ docker compose up -d --build
 
 ## Размещение на Hostinger VPS (Docker + SQLite)
 
-В репозитории есть отдельная конфигурация для VPS: приложение хранит SQLite в `data/training.db`, а Caddy автоматически получает HTTPS-сертификат для домена.
+В репозитории есть отдельная конфигурация для VPS: приложение хранит SQLite в `data/training.db` и слушает только локальный порт `127.0.0.1:3000`. Если на VPS уже работает Nginx, он остаётся главным веб-сервером и проксирует поддомен к приложению.
 
 1. На VPS установите Docker Engine и Docker Compose plugin, затем клонируйте репозиторий.
 2. Создайте `.env` из `.env.hostinger.example`. Укажите домен, задайте `ADMIN_PASSWORD` и создайте длинный случайный `JWT_SECRET` (например, `openssl rand -hex 32`). Не публикуйте `.env`.
 3. До первого запуска подготовьте постоянную папку данных: `mkdir -p data && sudo chown 1000:1000 data`.
 4. Если нужно сохранить существующие рабочие данные, сначала перенесите актуальный файл SQLite в `data/training.db`. Не используйте копию из GitHub: база намеренно исключена из репозитория. Для новой пустой базы файл создастся автоматически.
-5. Направьте A-запись `uchcontrol.sdiagnost.ru` на IPv4-адрес VPS, откройте входящие порты TCP 80 и 443 в брандмауэре и запустите `docker compose -f docker-compose.hostinger.yml up -d --build`.
-6. Проверьте `docker compose -f docker-compose.hostinger.yml ps` и `docker compose -f docker-compose.hostinger.yml logs -f app caddy`.
+5. Запустите `docker compose -f docker-compose.hostinger.yml up -d --build` и убедитесь, что контейнер `app` имеет статус `healthy`.
+6. Направьте A-запись только поддомена `uchcontrol.sdiagnost.ru` на IPv4-адрес VPS. Не меняйте NS-записи домена без переноса всех существующих DNS-записей.
+7. Добавьте Nginx-конфигурацию из `nginx/uchcontrol.sdiagnost.ru.conf` в `sites-available`, включите её, проверьте `nginx -t` и выполните `systemctl reload nginx`. Затем установите HTTPS-сертификат через Certbot (`certbot --nginx -d uchcontrol.sdiagnost.ru`) или текущий инструмент управления сертификатами.
 
 `data/` подключена как постоянная папка хоста, поэтому пересборка контейнера не удаляет SQLite. Настройте регулярные резервные копии этой папки. Не переключайте домен с текущего сервера до проверки входа и данных на VPS.
 
