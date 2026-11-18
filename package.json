@@ -1,0 +1,30 @@
+{
+  "name": "training-control",
+  "version": "1.0.0",
+  "description": "Контроль обучения персонала: учёт обучения, сроки, просрочки, дашборд",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "demo": "SEED_DEMO=1 node server/index.js",
+    "build:demo": "node scripts/build-demo.js",
+    "test": "node test/smoke.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.2.0",
+    "cookie-parser": "^1.4.7",
+    "exceljs": "^4.4.0",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "knex": "^3.3.0",
+    "pg": "^8.23.1"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
+  }
+}

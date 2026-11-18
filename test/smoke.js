@@ -1,0 +1,33 @@
+const C = require('../shared/core.js');
+const seed = require('../shared/seed.js').generate({ asOf: '2026-11-14' });
+const repo = require('../shared/memory-repo.js')(seed);
+const S = require('../shared/service.js').createService(repo, {});
+const admin = { id: 1, login: 'admin', fullName: 'Админ', role: 'admin' };
+(async () => {
+  console.log('employees', seed.employees.length, 'trainings', seed.trainings.length, 'depts', seed.departments.length);
+  let t = Date.now();
+  const d = await S.call(admin, 'dashboard', { asOf: '2026-11-14' });
+  console.log('dashboard ms', Date.now() - t, d.totals, 'ok', d.okShare.toFixed(3), 'crit emp', d.employeesCritical, '/', d.employeesWithRequirements);
+  console.log('need', d.need.now, d.need.months.map(m => m.label + ':' + m.count).join(' '));
+  console.log('worst depts', d.departments.slice(0, 4).map(x => x.name + ' ' + (x.okShare * 100).toFixed(0)));
+  console.log('courses', d.courses.slice(0, 3).map(x => x.name + ' ' + JSON.stringify(x.counts)));
+  const sl = await S.call(admin, 'statusList', { statuses: ['EXPIRED'], pageSize: 3 });
+  console.log(sl.total, sl.items[0]);
+  const pl = await S.call(admin, 'plan', {});
+  console.log(pl.keys.map(k => k.label + ':' + pl.colTotals[k.key]).join(' '));
+  const mgr = { id: 2, login: 'm', role: 'manager', departmentIds: [3] };
+  const dm = await S.call(mgr, 'dashboard', {});
+  console.log('manager employees', dm.employeesWithRequirements);
+  try { await S.call(mgr, 'courseSave', { name: 'x' }); } catch (e) { console.log('manager blocked:', e.message); }
+  const emp = seed.employees[0];
+  const r = await S.call(admin, 'trainingsAdd', { courseId: 1, date: '2026-11-10', protocolNo: '1/26', employees: [{ id: emp.id }] });
+  console.log('added', r);
+  const g = await S.call(admin, 'employeeGet', { id: emp.id });
+  console.log(g.requirements.map(x => x.courseCode + ':' + x.status + ':' + x.validUntil).join(' | '));
+  console.log('addMonths', C.addMonths('2024-01-31', 1), C.addMonths('2023-11-30', 3));
+  const imp = await S.call(admin, 'importEmployees', { rows: [{ tabNo: '999', fullName: 'Тест Т.Т.', site: 'Площадка «Северная»', department: 'Новый участок', position: 'Слесарь-ремонтник', hireDate: '01.02.2025' }, { tabNo: '', fullName: 'x' }] });
+  console.log(imp);
+  const it = await S.call(admin, 'importTrainings', { rows: [{ tabNo: '999', course: 'OT-A', date: '05.03.2025' }, { tabNo: '999', course: 'нет такого', date: '05.03.2025' }] });
+  console.log(it);
+  console.log((await S.call(admin, 'auditList', {})).items.map(a => a.summary));
+})().catch(e => { console.error('FAIL', e); process.exit(1); });
